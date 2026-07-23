@@ -7,3 +7,10 @@ release/
 *.log
 .DS_Store
 *.tsbuildinfo
+.pnpm-store/
+
+# Runtime data (contains config.yaml with password hash, logs, reports)
+.data/
+config.yaml
+config.yaml.old
+*.old

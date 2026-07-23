@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+    <meta name="theme-color" content="#0d1117" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="description" content="OpenClaude 移动端会话控制台" />
+    <title>OpenClaude</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icon.svg" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <!-- 登录视图：仅当 authRequired=true 且未认证时显示 -->
+    <main id="login-view">
+      <section class="login-card">
+        <img class="login-logo" src="/icon.svg" alt="" />
+        <h1 class="login-title">OpenClaude</h1>
+        <p class="login-subtitle">移动端会话控制台</p>
+        <form class="login-form" id="login-form" autocomplete="off">
+          <input
+            type="password"
+            id="password-input"
+            name="password"
+            placeholder="访问密码"
+            autocomplete="current-password"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
+            required
+          />
+          <button type="submit" class="primary" id="login-button">登录</button>
+        </form>
+        <div class="login-error" id="login-error" role="alert"></div>
+        <p class="login-footnote">密码在本地经 SHA-256 哈希后发送，明文不上传。</p>
+      </section>
+    </main>
+
+    <!-- 应用视图 -->
+    <main id="app-view">
+      <!-- 状态栏：真实反映 WebSocket / 网关 / 连接器状态，绝不伪造 -->
+      <div class="status-bar" role="status" aria-live="polite">
+        <span class="status-item" title="WebSocket 连接状态">
+          <span class="dot disconnected" id="ws-dot"></span>
+          <span class="label">连接</span>
+          <span class="value" id="ws-value">未连接</span>
+        </span>
+        <span class="status-item" title="网关 HTTP 状态">
+          <span class="dot disconnected" id="gateway-dot"></span>
+          <span class="label">网关</span>
+          <span class="value" id="gateway-value">未知</span>
+        </span>
+        <span class="status-item" title="Claude Desktop 连接器状态">
+          <span class="dot disconnected" id="connector-dot"></span>
+          <span class="label">连接器</span>
+          <span class="value" id="connector-value">未知</span>
+        </span>
+        <span class="status-spacer"></span>
+        <span class="status-version" id="server-version"></span>
+      </div>
+
+      <div class="app-body" id="app-body">
+        <!-- 会话列表 -->
+        <section class="session-list-panel" aria-label="会话列表">
+          <div class="session-list-header">
+            <h2>会话</h2>
+            <button type="button" id="refresh-sessions" title="刷新会话列表">刷新</button>
+          </div>
+          <ul class="session-list" id="session-list"></ul>
+          <div class="session-empty" id="session-empty" hidden>
+            <div id="session-empty-text">暂无会话</div>
+            <div class="hint" id="session-empty-hint"></div>
+          </div>
+        </section>
+
+        <!-- 当前会话 -->
+        <section class="conversation-panel" id="conversation-panel" aria-label="当前会话">
+          <header class="conversation-header">
+            <button type="button" class="back-button" id="back-button">← 返回</button>
+            <span class="conversation-title" id="conversation-title">未选择会话</span>
+            <span class="conversation-state" id="conversation-state"></span>
+          </header>
+
+          <!-- 连接器状态横幅：unavailable / degraded 时显示 -->
+          <div class="connector-banner" id="connector-banner">
+            <span class="banner-icon" id="banner-icon">!</span>
+            <span class="banner-text">
+              <strong id="banner-title"></strong>
+              <small id="banner-detail"></small>
+            </span>
+          </div>
+
+          <div class="message-stream" id="message-stream">
+            <div class="message-empty" id="message-empty">请从左侧选择会话</div>
+          </div>
+
+          <form class="composer" id="composer" autocomplete="off">
+            <span class="composer-hint" id="composer-hint"></span>
+            <textarea
+              id="composer-textarea"
+              placeholder="输入消息…"
+              rows="1"
+              autocomplete="off"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+            ></textarea>
+            <button type="button" class="cancel-button" id="cancel-button" disabled>停止</button>
+            <button type="submit" class="primary" id="send-button" disabled>发送</button>
+          </form>
+        </section>
+      </div>
+    </main>
+
+    <!-- Toast 提示 -->
+    <div id="toast" role="alert" aria-live="assertive"></div>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

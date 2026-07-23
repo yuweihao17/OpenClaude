@@ -1,37 +1,61 @@
-import type { SessionEvent, SessionSummary } from "../shared/protocol.js";
+import type { ConnectorStatus, SessionEvent, SessionSummary } from "../../shared/protocol.js";
+
+/**
+ * Claude Desktop 连接器接口。
+ *
+ * 这是网关层唯一允许知道 Claude Desktop 适配细节的模块边界（见 AGENTS.md）。
+ * 网关只依赖这个接口；具体实现（unavailable / mock / 真实适配）在各自文件里。
+ *
+ * 真实 Claude Desktop 连接器在云端环境无法验证，因此默认实现是 UnavailableConnector，
+ * 它会明确返回 unavailable 状态，绝不伪造"已连接/已同步/可用"。
+ */
+
+export interface ConnectorRouteReport {
+  /** 连接路线：official-runtime / cowork-svc / mcp-runtime / ui-automation */
+  route: string;
+  status: ConnectorStatus;
+  evidence: string;
+  /** 是否需要在本机进一步验证才能确认 */
+  needsOnHostVerification: boolean;
+}
+
+export interface ConnectorDiagnostics {
+  status: ConnectorStatus;
+  name: string;
+  detail: string;
+  routes: ConnectorRouteReport[];
+  desktop?: DesktopScanResult;
+}
 
 export interface ClaudeDesktopConnector {
   readonly name: string;
+  readonly status: ConnectorStatus;
   listSessions(): Promise<SessionSummary[]>;
   sendMessage(sessionId: string, text: string): Promise<void>;
   cancel(sessionId: string): Promise<void>;
   onEvent(listener: (sessionId: string, event: SessionEvent) => void): () => void;
+  diagnostics(): Promise<ConnectorDiagnostics>;
   close(): Promise<void>;
 }
 
 /**
- * 连接器接口先隔离未知的 Claude Desktop 内部协议，避免把 UI 自动化或私有 IPC 写死在网关层。
+ * Windows AppX 安装扫描结果。所有字段都可由 fixture 注入，便于在 Linux CI 上测试。
  */
-export class UnavailableClaudeDesktopConnector implements ClaudeDesktopConnector {
-  readonly name = "unavailable";
-
-  async listSessions(): Promise<SessionSummary[]> {
-    return [];
-  }
-
-  async sendMessage(): Promise<void> {
-    throw new Error("Claude Desktop connector is not configured yet");
-  }
-
-  async cancel(): Promise<void> {
-    throw new Error("Claude Desktop connector is not configured yet");
-  }
-
-  onEvent(): () => void {
-    return () => undefined;
-  }
-
-  async close(): Promise<void> {
-    return undefined;
-  }
+export interface DesktopScanResult {
+  found: boolean;
+  installPath: string;
+  source: string;
+  packageName: string;
+  packageVersion: string;
+  electronVersion: string;
+  mainEntry: string;
+  components: {
+    appAsar: boolean;
+    coworkSvc: boolean;
+    chromeNativeHost: boolean;
+    mcpRuntime: boolean;
+    wsDependency: boolean;
+  };
+  scannedAt: string;
+  notes: string[];
 }

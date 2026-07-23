@@ -1,36 +1,54 @@
 {
   "name": "openclaude",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A LAN companion for controlling Claude Desktop from a phone.",
   "private": true,
   "type": "module",
-  "main": "dist/main/index.js",
+  "main": "dist/src/main/index.js",
   "scripts": {
-    "dev": "pnpm run build:main && concurrently -k \"vite --host 127.0.0.1\" \"wait-on http://127.0.0.1:5173 && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron .\"",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b",
     "build:main": "tsc -p tsconfig.main.json",
+    "dev": "pnpm run build && electron .",
+    "dev:watch": "tsc -p tsconfig.main.json --watch",
     "start": "electron .",
-    "pretest": "pnpm run build:main",
+    "pretest": "pnpm run build",
     "test": "node --test test/*.test.mjs",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit -p tsconfig.main.json",
+    "sync:version": "node scripts/sync-version.mjs",
+    "probe:claude": "node scripts/probe-claude-desktop.mjs",
+    "pack:win": "pnpm run build && electron-builder --win"
   },
   "dependencies": {
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "@electron/asar": "^3.2.8",
     "ws": "^8.18.3",
     "zod": "^4.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
-    "@types/react": "^19.1.0",
-    "@types/react-dom": "^19.1.0",
     "@types/ws": "^8.18.1",
-    "@vitejs/plugin-react": "^4.4.1",
-    "concurrently": "^9.1.2",
-    "cross-env": "^7.0.3",
     "electron": "42.0.1",
-    "typescript": "^5.8.3",
-    "vite": "^6.3.5",
-    "wait-on": "^8.0.3"
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.8.3"
+  },
+  "build": {
+    "appId": "dev.openclaude.app",
+    "productName": "OpenClaude",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "web-shell/**/*",
+      "shared/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ]
+    }
   }
 }

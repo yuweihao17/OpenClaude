@@ -60,6 +60,7 @@ async function startGateway(): Promise<void> {
       host: attemptHost,
       port: attemptPort,
       connector,
+      configPath: settings.configPath,
       webShellDir: settings.webShellDir,
     });
     try {
@@ -126,21 +127,47 @@ function setupTray(): void {
 
 function printStartupBanner(): void {
   if (!settings || !gateway) return;
+  // 绝不记录明文密码。LAN 模式下只记录密码来源（env/config/generated），不记录值。
   diagnosticLog("launcher", "started", {
     version: OPENCLAUDE_VERSION_LABEL,
     host: gateway.host,
     port: gateway.port,
     lanMode: settings.lanMode,
     authRequired: gateway.authRequired,
+    passwordSource: settings.passwordSource,
     webShell: settings.webShellDir,
   });
   if (settings.lanMode) {
-    if (settings.generatedPassword) {
-      diagnosticLog("launcher", "lan_password", { password: settings.generatedPassword, configPath: settings.configPath });
-    }
     for (const url of settings.lanUrls) diagnosticLog("launcher", "lan_url", { url });
   } else {
     diagnosticLog("launcher", "loopback_url", { url: `http://127.0.0.1:${gateway.port}/` });
+  }
+}
+
+/**
+ * 自动生成的 LAN 密码只能通过本地窗口一次性展示。
+ * 若窗口不可用（headless/加载失败），启动失败并提示用户显式设置 OPENCLAUDE_ACCESS_PASSWORD。
+ * 明文绝不写日志、URL 或配置文件。
+ */
+async function presentGeneratedPassword(): Promise<void> {
+  if (!settings || !mainWindow) return;
+  if (settings.passwordSource !== "generated" || !settings.generatedPassword) return;
+  const password = settings.generatedPassword;
+  // 立即从主进程内存清除；窗口渲染进程拿到一次性 IPC 后自行渲染。
+  settings.generatedPassword = "";
+  const wc = mainWindow.webContents;
+  const sendOnce = (): void => {
+    try {
+      wc.send("openclaude:initial-password", password);
+      diagnosticLog("launcher", "lan_password_presented", {});
+    } catch (error) {
+      diagnosticError("launcher", "lan_password_present_failed", { error: String(error) });
+    }
+  };
+  if (wc.isLoading()) {
+    wc.once("did-finish-load", () => sendOnce());
+  } else {
+    sendOnce();
   }
 }
 
@@ -150,6 +177,14 @@ app.whenReady().then(async () => {
     if (app.isPackaged) installLogCapture();
     await startGateway();
     await createWindow();
+    // 自动生成密码必须能通过窗口展示，否则 LAN 模式用户无法登录 -> 明确失败。
+    if (settings.passwordSource === "generated" && !mainWindow) {
+      throw new Error(
+        "LAN mode auto-generated a password but no desktop window is available to display it. " +
+          "Set OPENCLAUDE_ACCESS_PASSWORD explicitly, or pre-populate config.yaml with a sha256-v1 hash.",
+      );
+    }
+    await presentGeneratedPassword();
     setupTray();
     printStartupBanner();
   } catch (error) {

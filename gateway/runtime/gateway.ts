@@ -32,6 +32,8 @@ export interface GatewayOptions {
   port?: number;
   connector: ClaudeDesktopConnector;
   authService?: AuthService;
+  /** 鉴权配置文件路径；由 launcher 传入，确保与 settings.configPath 一致。 */
+  configPath?: string;
   webShellDir?: string;
   allowedOrigins?: string[];
   heartbeatIntervalMs?: number;
@@ -80,7 +82,7 @@ export function createGateway(options: GatewayOptions): GatewayHandle {
   const host = options.host ?? HOST;
   const port = options.port ?? PORT;
   const connector = options.connector;
-  const auth = options.authService ?? createAuthService();
+  const auth = options.authService ?? createAuthService({ configPath: options.configPath });
   const staticServer = createStaticServer({ rootDir: options.webShellDir ?? "" });
   const allowedOrigins = options.allowedOrigins ?? [];
 

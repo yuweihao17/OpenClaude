@@ -117,6 +117,20 @@
     <!-- Toast 提示 -->
     <div id="toast" role="alert" aria-live="assertive"></div>
 
+    <!-- 首次运行密码一次性展示（仅桌面端 preload 触发，手机端永不出现） -->
+    <div id="setup-modal" class="setup-modal" hidden role="dialog" aria-modal="true" aria-labelledby="setup-title">
+      <div class="setup-card">
+        <h2 id="setup-title">LAN 访问密码</h2>
+        <p class="setup-warning">这是自动生成的 LAN 访问密码，<strong>仅显示一次</strong>。请立即保存，关闭后将无法再次查看。</p>
+        <div class="setup-password-row">
+          <code id="setup-password" class="setup-password"></code>
+          <button type="button" id="setup-copy" class="setup-copy">复制</button>
+        </div>
+        <p class="setup-hint">在手机浏览器打开下方 LAN 地址，使用此密码登录。明文不会写入日志、URL 或配置文件。</p>
+        <button type="button" id="setup-close" class="primary">我已保存</button>
+      </div>
+    </div>
+
     <script type="module" src="/app.js"></script>
   </body>
 </html>

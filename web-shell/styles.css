@@ -736,3 +736,87 @@ a {
     user-select: text;
   }
 }
+
+/* 首次运行密码一次性展示弹窗（仅桌面端 preload 触发） */
+.setup-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.setup-modal[hidden] {
+  display: none;
+}
+
+.setup-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 460px;
+  width: 100%;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+}
+
+.setup-card h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+  color: #e6edf3;
+}
+
+.setup-warning {
+  margin: 0 0 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #d29922;
+}
+
+.setup-password-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  margin-bottom: 12px;
+}
+
+.setup-password {
+  flex: 1;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 14px;
+  color: #7ee787;
+  word-break: break-all;
+  user-select: all;
+}
+
+.setup-copy {
+  background: #21262d;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  color: #c9d1d9;
+  padding: 0 14px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.setup-copy:hover {
+  background: #30363d;
+}
+
+.setup-hint {
+  margin: 0 0 18px;
+  font-size: 12px;
+  color: #8b949e;
+  line-height: 1.5;
+}
+
+.setup-card .primary {
+  width: 100%;
+}

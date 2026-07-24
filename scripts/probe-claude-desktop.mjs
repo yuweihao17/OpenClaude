@@ -25,7 +25,8 @@ if (!fs.existsSync(distScanner) || !fs.existsSync(distCapabilities)) {
 const { scanClaudeDesktop } = await import(distScanner);
 const { probeCapabilities } = await import(distCapabilities);
 
-const configuredPath = process.env.OPENCLAUDE_CLAUDE_INSTALL_PATH || "";
+// OPENCLAUDE_CLAUDE_PATH 为首选；OPENCLAUDE_CLAUDE_INSTALL_PATH 作为兼容别名。
+const configuredPath = process.env.OPENCLAUDE_CLAUDE_PATH || process.env.OPENCLAUDE_CLAUDE_INSTALL_PATH || "";
 const allowOnHostProbe = process.env.OPENCLAUDE_PROBE_ON_HOST === "1" || process.env.OPENCLAUDE_PROBE_ON_HOST === "true";
 
 const scan = scanClaudeDesktop({

@@ -69,6 +69,12 @@ const cancelButton = $("cancel-button");
 
 const toast = $("toast");
 
+// 首次运行密码一次性展示（仅桌面端 preload 注入，手机端无此 API）
+const setupModal = $("setup-modal");
+const setupPasswordEl = $("setup-password");
+const setupCopyBtn = $("setup-copy");
+const setupCloseBtn = $("setup-close");
+
 // ---------------- 状态 ----------------
 
 let authToken = "";
@@ -951,10 +957,44 @@ function handleCancel() {
   updateComposerState();
 }
 
+// ---------------- 首次运行密码展示 ----------------
+
+function showSetupPassword(password) {
+  if (!setupModal || !setupPasswordEl) return;
+  setupPasswordEl.textContent = String(password || "");
+  setupModal.hidden = false;
+  if (setupCopyBtn) {
+    setupCopyBtn.onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(String(password || ""));
+        showToast("已复制到剪贴板");
+      } catch {
+        showToast("复制失败，请手动选中复制", true);
+      }
+    };
+  }
+  if (setupCloseBtn) {
+    setupCloseBtn.onclick = () => {
+      setupModal.hidden = true;
+      // 清空 DOM 中的明文，避免长期驻留。
+      setupPasswordEl.textContent = "";
+    };
+  }
+}
+
 // ---------------- 初始化 ----------------
 
 function init() {
   loginForm.addEventListener("submit", handleLoginSubmit);
+
+  // 桌面端首次运行：preload 通过 window.openclaude.onInitialPassword 一次性投递明文密码。
+  // 仅本机窗口可触发；手机端浏览器没有 window.openclaude，因此永不会进入此分支。
+  if (window.openclaude && typeof window.openclaude.onInitialPassword === "function") {
+    window.openclaude.onInitialPassword((password) => {
+      if (!password) return;
+      showSetupPassword(password);
+    });
+  }
 
   refreshSessions.addEventListener("click", () => {
     if (!helloAck) {

@@ -55,13 +55,44 @@ function loadAsarReader(allow: boolean): AsarReader | null {
 export function defaultWindowsCandidates(env: NodeJS.ProcessEnv, homeDir: string): string[] {
   const localAppData = env.LOCALAPPDATA || path.join(homeDir, "AppData", "Roaming");
   const programFiles = env.PROGRAMFILES || "C:\\Program Files";
-  return [
+  const candidates = [
     path.join(localAppData, "AnthropicClaude"),
     path.join(localAppData, "Anthropic", "Claude"),
     path.join(programFiles, "AnthropicClaude"),
     path.join(programFiles, "Anthropic", "Claude"),
     path.join(programFiles, "Claude"),
   ];
+  // Windows AppX 安装真实路径：C:\Program Files\WindowsApps\Claude_*。
+  // WindowsApps 目录通常需要管理员权限读取，扫描时尝试列出 Claude_* 子目录；失败则跳过。
+  const windowsApps = env.OPENCLAUDE_WINDOWS_APPS_DIR || path.join(programFiles, "WindowsApps");
+  for (const sub of expandClaudeAppxDirs(fs, windowsApps)) candidates.push(sub);
+  return candidates;
+}
+
+/**
+ * 在 WindowsApps 目录下列出所有 `Claude_*` 子目录。返回真实存在的目录路径。
+ * 用作 defaultWindowsCandidates 的一部分，也可被测试单独调用（注入 fileSystem）。
+ */
+export function expandClaudeAppxDirs(fileSystem: typeof fs, windowsAppsDir: string): string[] {
+  const result: string[] = [];
+  let entries: string[] = [];
+  try {
+    entries = fileSystem.readdirSync(windowsAppsDir, { withFileTypes: true })
+      .filter((e) => e.isDirectory())
+      .map((e) => e.name);
+  } catch {
+    // 权限不足或目录不存在；静默跳过（本机扫描时会记录 notes）。
+    return result;
+  }
+  for (const name of entries) {
+    if (/^Claude[_-]/i.test(name)) {
+      const full = path.join(windowsAppsDir, name);
+      try {
+        if (fileSystem.statSync(full).isDirectory()) result.push(full);
+      } catch { /* ignore */ }
+    }
+  }
+  return result;
 }
 
 function findFirstExisting(fileSystem: typeof fs, candidates: string[]): string {

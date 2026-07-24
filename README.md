@@ -13,9 +13,9 @@ Current local research baseline: Claude Desktop `1.24012.1` on Windows, Electron
 - Electron launcher with tray, bounded log capture, and graceful shutdown.
 - Gateway runtime: HTTP `/api/health`, `/api/auth/*`, `/api/status`, `/api/diagnostics`, static web-shell serving, and WebSocket `/ws` relay.
 - Security model: default loopback binding, authenticated LAN mode with sha256-hashed password in `config.yaml`, in-memory access tokens, login rate limiting, origin checks, request body limits, WS message size limits, heartbeat/timeout.
-- Claude Desktop adapter framework: Windows AppX scanner (path + asar + version + component detection), capability probe over 4 routes, `UnavailableConnector` (default, truthfully reports unavailable), `MockConnector` (local demo only).
+- Claude Desktop adapter framework: Windows AppX scanner (default candidates include `C:\Program Files\WindowsApps\Claude_*`, plus `LOCALAPPDATA`/`PROGRAMFILES` locations and `OPENCLAUDE_CLAUDE_PATH` override; path + asar + version + component detection), capability probe over 4 routes, `UnavailableConnector` (default, truthfully reports unavailable), `MockConnector` (local demo only).
 - Mobile-first web-shell: login, session list, message stream, composer, real connection/connector status, PWA manifest.
-- 31 tests pass on Linux CI (protocol, auth rate-limit, http-utils, loopback, gateway lifecycle, scanner, capabilities). Scanner tests use path fixtures that stay Windows-compatible.
+- 44 tests pass on Linux CI (protocol, auth rate-limit, http-utils, loopback, gateway lifecycle, scanner, capabilities, LAN password flow, AppX WindowsApps scanning, probe/sync script execution). Scanner tests use path fixtures that stay Windows-compatible.
 - Dev scripts: `sync:version`, `probe:claude`.
 
 ### What must be verified on a Windows host
@@ -74,8 +74,11 @@ LAN mode is **off by default**. The gateway binds to `127.0.0.1` only.
 To enable LAN access from a phone on the same network:
 
 1. Set `OPENCLAUDE_HOST=0.0.0.0` (or set it in `.env`).
-2. Start the launcher. On first LAN start it auto-generates a random password, writes its sha256 hash to `config.yaml`, and logs the plaintext password **once** to the local gateway log (visible only on the host machine).
-3. Note the LAN URL and password from the startup banner / log.
+2. Provide a password via one of:
+   - `OPENCLAUDE_ACCESS_PASSWORD` env var (plaintext; the launcher hashes it with sha256 and writes the hash to `config.yaml`, never logging the plaintext). Use this in headless/automated setups.
+   - A pre-existing `sha256-v1:` hash in `config.yaml` (reused on next start).
+   - Neither: the launcher auto-generates a random password, writes only its sha256 hash to `config.yaml`, and displays the plaintext **once** in a desktop setup dialog (via the local preload IPC). The plaintext is never written to logs, URLs, or config. If no desktop window can be shown to display it, startup fails with a clear message telling you to set `OPENCLAUDE_ACCESS_PASSWORD`.
+3. Note the LAN URL from the startup banner.
 4. Open the LAN URL on your phone and log in with the password.
 
 LAN mode **requires** authentication; the launcher refuses to serve unauthenticated LAN traffic.
@@ -122,7 +125,7 @@ src/connector/      Claude Desktop adapter framework (scanner, capabilities, con
 src/main/           Electron launcher (lifecycle, tray, log capture)
 shared/             Protocol schema and version constants
 web-shell/          Mobile-first web UI (HTML/CSS/JS), served by the gateway
-test/               Focused tests (31 tests, Windows-compatible)
+test/               Focused tests (44 tests, Windows-compatible)
 scripts/            sync-version and probe-claude-desktop
 ```
 

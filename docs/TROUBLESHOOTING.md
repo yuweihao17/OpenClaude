@@ -53,9 +53,13 @@ The tray uses a 1x1 PNG data URL. On Linux without a tray/appindicator, tray cre
 
 ### Login fails with "Invalid password"
 
-1. The password is the plaintext generated on first LAN start, logged once as `[launcher] lan_password`. Check the gateway log.
-2. If you lost it, delete `config.yaml` (under the runtime dir) and restart the launcher in LAN mode to regenerate one.
+1. If you set `OPENCLAUDE_ACCESS_PASSWORD`, use that exact plaintext value.
+2. If a password was auto-generated, it was shown **once** in the desktop setup dialog on first LAN start (never written to logs/URL/config). If you closed it without saving, delete `config.yaml` (under the runtime dir) and restart the launcher in LAN mode to regenerate one — the new plaintext will be shown once again in the dialog.
 3. The web-shell hashes the password with SHA-256 before sending `passwordHash` to `/api/auth/login`. Do not paste the hash into the login form; paste the plaintext password.
+
+### Launcher exits with "no desktop window is available to display it"
+
+LAN mode auto-generated a password but could not display it (headless / no window). The plaintext is never logged, so there is no way to recover it from logs. Set `OPENCLAUDE_ACCESS_PASSWORD` explicitly in `.env`, or pre-populate `config.yaml` with a `sha256-v1:` hash, then restart.
 
 ### Login fails with "Too many login attempts"
 

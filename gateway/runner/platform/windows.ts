@@ -31,9 +31,13 @@ export interface WindowsRunnerResult {
 const CLAUDE_EXE_CANDIDATES = ["Claude.exe", "claude.exe", "Anthropic Claude.exe"];
 
 function resolveClaudeExecutable(installPath: string): string {
-  for (const name of CLAUDE_EXE_CANDIDATES) {
-    const p = path.join(installPath, name);
-    try { if (fs.statSync(p).isFile()) return p; } catch {}
+  // Check both root and app subdirectory
+  const searchDirs = [installPath, path.join(installPath, "app")];
+  for (const dir of searchDirs) {
+    for (const name of CLAUDE_EXE_CANDIDATES) {
+      const p = path.join(dir, name);
+      try { if (fs.statSync(p).isFile()) return p; } catch {}
+    }
   }
   // Fall back to AppxManifest.xml for Windows Store installs.
   const manifestExe = readExecutableFromAppxManifest(installPath);
@@ -53,10 +57,20 @@ function readExecutableFromAppxManifest(installPath: string): string {
 }
 
 export function layoutFromScan(scan: DesktopScanResult): WindowsRunnerLayout {
-  const asarPath = path.join(scan.installPath, "resources", "app.asar");
   const executablePath = resolveClaudeExecutable(scan.installPath);
+
+  // If executable is in app/ subdirectory, runtime files are there too
+  const exeDir = path.dirname(executablePath);
+  const runtimeRoot = exeDir !== scan.installPath ? exeDir : scan.installPath;
+
+  // Look for resources/app.asar in both runtime root and install root
+  let asarPath = path.join(runtimeRoot, "resources", "app.asar");
+  if (!fs.existsSync(asarPath)) {
+    asarPath = path.join(scan.installPath, "resources", "app.asar");
+  }
+
   return {
-    runtimeRoot: scan.installPath,
+    runtimeRoot,
     appRoot: scan.installPath,
     asarPath,
     executablePath,
@@ -114,20 +128,34 @@ function tryRealpath(p: string): string {
   try { return fs.realpathSync(p); } catch { return path.resolve(p); }
 }
 
+function copyFileOrDir(src: string, dest: string): void {
+  const stat = fs.statSync(src);
+  if (stat.isDirectory()) {
+    fs.mkdirSync(dest, { recursive: true });
+    for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+      copyFileOrDir(path.join(src, entry.name), path.join(dest, entry.name));
+    }
+  } else if (stat.isFile()) {
+    const content = fs.readFileSync(src);
+    fs.writeFileSync(dest, content);
+  } else if (stat.isSymbolicLink()) {
+    const target = fs.readlinkSync(src);
+    fs.symlinkSync(target, dest);
+  }
+}
+
 function copyRuntimeFiles(layout: WindowsRunnerLayout, destDir: string): void {
   const entries = fs.readdirSync(layout.runtimeRoot, { withFileTypes: true });
   for (const entry of entries) {
     const src = path.join(layout.runtimeRoot, entry.name);
     if (shouldSkipEntry(entry.name, src, layout)) continue;
-    fs.cpSync(src, path.join(destDir, entry.name), {
-      recursive: true,
-      force: true,
-      verbatimSymlinks: true,
-    });
+    const dest = path.join(destDir, entry.name);
+    copyFileOrDir(src, dest);
   }
-  // Copy the executable separately so we can chmod it.
+  // Copy the executable separately
   const destExe = path.join(destDir, path.basename(layout.executablePath));
-  fs.copyFileSync(layout.executablePath, destExe);
+  const content = fs.readFileSync(layout.executablePath);
+  fs.writeFileSync(destExe, content);
 }
 
 export interface CreateWindowsRunnerOptions {
@@ -169,7 +197,11 @@ export async function createWindowsRunner(
 
   if (!hit) {
     diagnosticLog("windows-runner", "runtime_copy_start", { runtimeRoot: layout.runtimeRoot, dest: runnerRootDir });
-    fs.rmSync(runnerRootDir, { recursive: true, force: true });
+    try {
+      fs.rmSync(runnerRootDir, { recursive: true, force: true });
+    } catch (err) {
+      // Ignore errors if directory doesn't exist or is locked
+    }
     fs.mkdirSync(runnerRootDir, { recursive: true });
     copyRuntimeFiles(layout, runnerRootDir);
     writeManifest(markerPath, nextFingerprint);
@@ -179,7 +211,11 @@ export async function createWindowsRunner(
   }
 
   // Always regenerate the gateway asar so it reflects the current build.
-  fs.rmSync(runnerResourcesDir, { recursive: true, force: true });
+  try {
+    fs.rmSync(runnerResourcesDir, { recursive: true, force: true });
+  } catch (err) {
+    // Ignore errors if directory doesn't exist or is locked
+  }
   fs.mkdirSync(runnerResourcesDir, { recursive: true });
   const runnerAsarPath = await writeGatewayAsar({ runnerResourcesDir, workDir });
 

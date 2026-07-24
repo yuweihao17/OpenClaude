@@ -289,7 +289,11 @@ function installBrowserWindowHooks(): void {
   GatewayBrowserWindow.prototype = NativeBrowserWindow.prototype;
 
   try {
-    electron.BrowserWindow = GatewayBrowserWindow;
+    Object.defineProperty(electron, "BrowserWindow", {
+      value: GatewayBrowserWindow,
+      writable: true,
+      configurable: true,
+    });
   } catch (error) {
     diagnosticWarn("claude-bridge", "browser_window_patch_failed", {
       error: error instanceof Error ? error.message : String(error),

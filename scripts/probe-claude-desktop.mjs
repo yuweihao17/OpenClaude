@@ -14,8 +14,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(here, "..");
-const distScanner = path.join(projectRoot, "dist", "src", "connector", "claude-desktop-scanner.js");
-const distCapabilities = path.join(projectRoot, "dist", "src", "connector", "claude-desktop-capabilities.js");
+const distScanner = path.join(projectRoot, "dist", "gateway", "runner", "official-layout.js");
+const distCapabilities = path.join(projectRoot, "dist", "gateway", "runner", "capabilities.js");
 
 if (!fs.existsSync(distScanner) || !fs.existsSync(distCapabilities)) {
   console.error("[probe:claude] dist not found. Run `pnpm run build` first.");

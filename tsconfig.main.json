@@ -14,9 +14,8 @@
     "types": ["node"]
   },
   "include": [
-    "src/main/**/*.ts",
-    "src/main/**/*.cts",
-    "src/connector/**/*.ts",
+    "launcher/**/*.ts",
+    "launcher/**/*.cts",
     "gateway/**/*.ts",
     "shared/**/*.ts"
   ]

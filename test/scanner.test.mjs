@@ -7,7 +7,7 @@ import {
   scanClaudeDesktop,
   defaultWindowsCandidates,
   expandClaudeAppxDirs,
-} from "../dist/src/connector/claude-desktop-scanner.js";
+} from "../dist/gateway/runner/official-layout.js";
 
 function tempDir(t) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaude-scan-"));

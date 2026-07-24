@@ -4,7 +4,7 @@
   "description": "A LAN companion for controlling Claude Desktop from a phone.",
   "private": true,
   "type": "module",
-  "main": "dist/src/main/index.js",
+  "main": "dist/launcher/index.js",
   "scripts": {
     "build": "tsc -b",
     "build:main": "tsc -p tsconfig.main.json",
@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@electron/asar": "^3.2.8",
+    "resedit": "^2.0.3",
     "ws": "^8.18.3",
     "zod": "^4.0.0"
   },
@@ -54,7 +55,9 @@
       "target": [
         {
           "target": "portable",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ]
     }

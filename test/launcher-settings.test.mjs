@@ -7,7 +7,7 @@ import crypto from "node:crypto";
 import {
   resolveLauncherSettings,
   resolveConfiguredClaudePath,
-} from "../dist/src/main/launcher-settings.js";
+} from "../dist/launcher/settings.js";
 
 function tempDir(t) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaude-settings-"));

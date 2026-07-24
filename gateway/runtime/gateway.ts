@@ -1,7 +1,7 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import crypto from "node:crypto";
 import { WebSocket, WebSocketServer } from "ws";
-import type { ClaudeDesktopConnector } from "../../src/connector/claude-desktop-connector.js";
+import type { ClaudeDesktopConnector } from "../runner/types.js";
 import type { ClientMessage, ServerMessage } from "../../shared/protocol.js";
 import { clientMessageSchema, MAX_WS_MESSAGE_BYTES } from "../../shared/protocol.js";
 import { OPENCLAUDE_VERSION_LABEL } from "../../shared/app-version.js";

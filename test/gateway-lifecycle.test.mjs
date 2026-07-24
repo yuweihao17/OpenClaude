@@ -6,8 +6,8 @@ import os from "node:os";
 import path from "node:path";
 import { WebSocket } from "ws";
 import { createGateway } from "../dist/gateway/runtime/gateway.js";
-import { MockClaudeDesktopConnector } from "../dist/src/connector/mock-connector.js";
-import { UnavailableClaudeDesktopConnector } from "../dist/src/connector/unavailable-connector.js";
+import { MockClaudeDesktopConnector } from "../dist/gateway/runner/mock-connector.js";
+import { UnavailableClaudeDesktopConnector } from "../dist/gateway/runner/unavailable-connector.js";
 
 function freePort() {
   return new Promise((resolve, reject) => {

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { probeCapabilities, unavailableDiagnostics } from "../dist/src/connector/claude-desktop-capabilities.js";
+import { probeCapabilities, unavailableDiagnostics } from "../dist/gateway/runner/capabilities.js";
 
 function makeScan(overrides = {}) {
   return {

@@ -3,6 +3,9 @@ import { UnavailableClaudeDesktopConnector } from "./unavailable-connector.js";
 import { MockClaudeDesktopConnector } from "./mock-connector.js";
 import { diagnosticLog } from "../runtime/core/diagnostics.js";
 
+export { createWindowsRunner, spawnWindowsRunner, layoutFromScan } from "./platform/windows.js";
+export type { WindowsRunnerResult, WindowsRunnerLayout } from "./platform/windows.js";
+
 export function createConnector(env: NodeJS.ProcessEnv = process.env): ClaudeDesktopConnector {
   if (env.OPENCLAUDE_USE_MOCK_CONNECTOR === "1" || env.OPENCLAUDE_USE_MOCK_CONNECTOR === "true") {
     diagnosticLog("connector", "factory_mock");

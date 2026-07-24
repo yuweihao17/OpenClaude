@@ -2,14 +2,22 @@
   "compilerOptions": {
     "composite": true,
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": ".",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "target": "ES2022",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
     "types": ["node"]
   },
-  "include": ["src/main/**/*.ts", "src/main/**/*.cts", "src/connector/**/*.ts", "src/shared/**/*.ts"]
+  "include": [
+    "src/main/**/*.ts",
+    "src/main/**/*.cts",
+    "src/connector/**/*.ts",
+    "gateway/**/*.ts",
+    "shared/**/*.ts"
+  ]
 }

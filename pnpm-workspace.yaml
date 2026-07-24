@@ -3,3 +3,6 @@ allowBuilds:
 onlyBuiltDependencies:
   - esbuild
   - electron
+overrides:
+  '@electron/universal>fs-extra': 11.3.6
+  minimatch@10.2.5>brace-expansion: 5.0.7

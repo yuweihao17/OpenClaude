@@ -19,7 +19,7 @@ function runScript(scriptPath, env = {}) {
   });
 }
 
-test("probe:claude script runs and reports unavailable on non-Windows", () => {
+test("probe:claude script runs without enabling on-host route verification", () => {
   const stdout = runScript(path.join(projectRoot, "scripts", "probe-claude-desktop.mjs"), {
     OPENCLAUDE_PROBE_ON_HOST: "",
   });
@@ -27,7 +27,7 @@ test("probe:claude script runs and reports unavailable on non-Windows", () => {
   assert.equal(payload.ok, true);
   assert.equal(payload.platform, process.platform);
   assert.equal(payload.status, "unavailable");
-  assert.equal(payload.scan.found, false);
+  assert.equal(typeof payload.scan.found, "boolean");
   assert.ok(Array.isArray(payload.routes));
   assert.equal(payload.routes.length, 4);
 });

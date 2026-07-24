@@ -10,7 +10,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(here, "..");
@@ -22,8 +22,8 @@ if (!fs.existsSync(distScanner) || !fs.existsSync(distCapabilities)) {
   process.exit(1);
 }
 
-const { scanClaudeDesktop } = await import(distScanner);
-const { probeCapabilities } = await import(distCapabilities);
+const { scanClaudeDesktop } = await import(pathToFileURL(distScanner).href);
+const { probeCapabilities } = await import(pathToFileURL(distCapabilities).href);
 
 // OPENCLAUDE_CLAUDE_PATH 为首选；OPENCLAUDE_CLAUDE_INSTALL_PATH 作为兼容别名。
 const configuredPath = process.env.OPENCLAUDE_CLAUDE_PATH || process.env.OPENCLAUDE_CLAUDE_INSTALL_PATH || "";

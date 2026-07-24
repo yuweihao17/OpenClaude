@@ -28,6 +28,11 @@ let settings: ResolvedSettings | null = null;
 let logWriter: ReturnType<typeof createBoundedLogWriter> | null = null;
 let isQuitting = false;
 
+function resolveAppIconPath(): string {
+  if (app.isPackaged) return path.join(process.resourcesPath, "icon.png");
+  return path.resolve(import.meta.dirname, "..", "..", "..", "build", "icons", "icon.png");
+}
+
 function installLogCapture(): void {
   if (!settings) return;
   logWriter = createBoundedLogWriter({ maxBytes: resolveLogMaxBytes(process.env) });
@@ -87,6 +92,7 @@ async function createWindow(): Promise<void> {
     width: 1100,
     height: 760,
     title: "OpenClaude",
+    icon: resolveAppIconPath(),
     webPreferences: {
       preload: path.join(import.meta.dirname, "preload.cjs"),
       contextIsolation: true,
@@ -111,6 +117,7 @@ function setupTray(): void {
   if (!gateway || !mainWindow) return;
   tray = createTray({
     window: mainWindow,
+    iconPath: resolveAppIconPath(),
     onRestart: async () => {
       try {
         await gateway?.restart();

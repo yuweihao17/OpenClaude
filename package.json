@@ -34,7 +34,8 @@
     "appId": "dev.openclaude.app",
     "productName": "OpenClaude",
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "build"
     },
     "files": [
       "dist/**/*",
@@ -42,7 +43,14 @@
       "shared/**/*",
       "package.json"
     ],
+    "extraResources": [
+      {
+        "from": "build/icons/icon.png",
+        "to": "icon.png"
+      }
+    ],
     "win": {
+      "icon": "build/icons/icon.ico",
       "target": [
         {
           "target": "portable",

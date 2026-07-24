@@ -12,16 +12,16 @@ export interface TrayController {
 
 export function createTray(options: {
   window: BrowserWindow;
+  iconPath: string;
   onRestart: () => void;
   onQuit: () => void;
   initialStatus?: string;
 }): TrayController | null {
   let tray: Tray | null = null;
   try {
-    const icon = nativeImage.createFromDataURL(
-      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
-    );
-    tray = new Tray(icon);
+    const icon = nativeImage.createFromPath(options.iconPath);
+    if (icon.isEmpty()) return null;
+    tray = new Tray(icon.resize({ width: 32, height: 32, quality: "best" }));
   } catch {
     return null;
   }

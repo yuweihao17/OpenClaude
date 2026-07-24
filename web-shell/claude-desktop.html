@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <title>Claude Desktop</title>
+  <!-- Bridge polyfill must load before Claude's renderer code -->
+  <script src="/claude-bridge-polyfill.js"></script>
+</head>
+<body>
+  <!-- Claude Desktop's renderer will mount here -->
+  <div id="root"></div>
+
+  <!--
+    Gateway will inject the following:
+    1. Claude Desktop's official renderer HTML
+    2. Configuration script with __CLAUDE_WEB_CONFIG__
+  -->
+</body>
+</html>

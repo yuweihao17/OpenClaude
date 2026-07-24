@@ -19,12 +19,16 @@ if (!/^\d+\.\d+\.\d+/.test(version)) {
   process.exit(1);
 }
 
-const content = `// 此文件由 pnpm run sync:version 生成；请修改 package.json version 后重新同步。
-// launcher 和认证页都从这里读取版本，避免运行时解析 package.json。
-
-export const OPENCLAUDE_VERSION = ${JSON.stringify(version)};
-export const OPENCLAUDE_VERSION_LABEL = \`v\${OPENCLAUDE_VERSION}\`;
-`;
+const existing = fs.existsSync(outPath) ? fs.readFileSync(outPath, "utf-8") : "";
+const eol = existing.includes("\r\n") ? "\r\n" : "\n";
+const content = [
+  "// 此文件由 pnpm run sync:version 生成；请修改 package.json version 后重新同步。",
+  "// launcher 和认证页都从这里读取版本，避免运行时解析 package.json。",
+  "",
+  `export const OPENCLAUDE_VERSION = ${JSON.stringify(version)};`,
+  "export const OPENCLAUDE_VERSION_LABEL = `v${OPENCLAUDE_VERSION}`;",
+  "",
+].join(eol);
 
 fs.writeFileSync(outPath, content, "utf-8");
 console.log(`[sync:version] wrote ${path.relative(projectRoot, outPath)} -> v${version}`);

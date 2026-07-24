@@ -1,25 +1,12 @@
 import { app, BrowserWindow, shell } from "electron";
 import path from "node:path";
-import { createConnector } from "../connector/index.js";
-import { createGateway, type GatewayHandle } from "../../gateway/runtime/gateway.js";
-import { resolveLauncherSettings, type ResolvedSettings } from "./launcher-settings.js";
+import { createConnector } from "../gateway/runner/index.js";
+import { createGateway, type GatewayHandle } from "../gateway/runtime/gateway.js";
+import { resolveLauncherSettings, type ResolvedSettings } from "./settings.js";
 import { createBoundedLogWriter, resolveLogMaxBytes } from "./log-writer.js";
 import { createTray, type TrayController } from "./tray.js";
-import { diagnosticLog, diagnosticWarn, diagnosticError } from "../../gateway/runtime/core/diagnostics.js";
-import { OPENCLAUDE_VERSION_LABEL } from "../../shared/app-version.js";
-
-/**
- * OpenClaude Electron Launcher（主进程）。迁移自 OpenCodex launcher。
- *
- * 职责：
- * - 解析运行设置（loopback / LAN、端口、日志目录、web-shell 目录）。
- * - 创建 Claude Desktop 连接器（默认 unavailable，绝不伪造连接）。
- * - 创建并监听 Gateway；监听失败（端口占用）时尝试一次 +1 重试。
- * - 打开桌面窗口加载 web-shell（与手机端共用同一 UI）。
- * - 系统托盘：状态、重启、退出。
- * - 打包模式下把 stdout/stderr 写入有界日志文件。
- * - 优雅退出：关闭窗口 -> 关闭网关 -> 关闭连接器。
- */
+import { diagnosticLog, diagnosticWarn, diagnosticError } from "../gateway/runtime/core/diagnostics.js";
+import { OPENCLAUDE_VERSION_LABEL } from "../shared/app-version.js";
 
 let gateway: GatewayHandle | null = null;
 let mainWindow: BrowserWindow | null = null;
@@ -30,7 +17,7 @@ let isQuitting = false;
 
 function resolveAppIconPath(): string {
   if (app.isPackaged) return path.join(process.resourcesPath, "icon.png");
-  return path.resolve(import.meta.dirname, "..", "..", "..", "build", "icons", "icon.png");
+  return path.resolve(import.meta.dirname, "..", "build", "icons", "icon.png");
 }
 
 function installLogCapture(): void {
@@ -134,7 +121,6 @@ function setupTray(): void {
 
 function printStartupBanner(): void {
   if (!settings || !gateway) return;
-  // 绝不记录明文密码。LAN 模式下只记录密码来源（env/config/generated），不记录值。
   diagnosticLog("launcher", "started", {
     version: OPENCLAUDE_VERSION_LABEL,
     host: gateway.host,
@@ -151,16 +137,10 @@ function printStartupBanner(): void {
   }
 }
 
-/**
- * 自动生成的 LAN 密码只能通过本地窗口一次性展示。
- * 若窗口不可用（headless/加载失败），启动失败并提示用户显式设置 OPENCLAUDE_ACCESS_PASSWORD。
- * 明文绝不写日志、URL 或配置文件。
- */
 async function presentGeneratedPassword(): Promise<void> {
   if (!settings || !mainWindow) return;
   if (settings.passwordSource !== "generated" || !settings.generatedPassword) return;
   const password = settings.generatedPassword;
-  // 立即从主进程内存清除；窗口渲染进程拿到一次性 IPC 后自行渲染。
   settings.generatedPassword = "";
   const wc = mainWindow.webContents;
   const sendOnce = (): void => {
@@ -184,7 +164,6 @@ app.whenReady().then(async () => {
     if (app.isPackaged) installLogCapture();
     await startGateway();
     await createWindow();
-    // 自动生成密码必须能通过窗口展示，否则 LAN 模式用户无法登录 -> 明确失败。
     if (settings.passwordSource === "generated" && !mainWindow) {
       throw new Error(
         "LAN mode auto-generated a password but no desktop window is available to display it. " +
@@ -206,7 +185,6 @@ app.whenReady().then(async () => {
 });
 
 app.on("window-all-closed", () => {
-  // 不退出：托盘常驻，网关继续为手机端服务。
   if (process.platform === "darwin") return;
 });
 

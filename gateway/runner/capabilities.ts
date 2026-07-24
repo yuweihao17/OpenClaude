@@ -1,17 +1,5 @@
 import type { ConnectorStatus } from "../../shared/protocol.js";
-import type { ConnectorRouteReport, DesktopScanResult } from "./claude-desktop-connector.js";
-
-/**
- * Claude Desktop 连接路线能力探测。迁移自 OpenCodex capability probe 思路。
- *
- * 按以下顺序评估，每条路线都必须有证据才可标记 supported；否则按 degraded/unavailable 报告。
- * 绝不伪造"已连接/可用"。
- *
- * 1. official-runtime：从已安装 app.asar 拉起隔离的隐藏 Electron runtime，只中继必要 IPC。
- * 2. cowork-svc：cowork-svc.exe 或 chrome-native-host.exe 暴露的本地服务接口（协议未公开）。
- * 3. mcp-runtime：打包的 MCP runtime 或 WebSocket 接口（协议未公开）。
- * 4. ui-automation：Windows UI Automation 兜底，仅作版本受限的回退。
- */
+import type { ConnectorRouteReport, DesktopScanResult } from "./types.js";
 
 export interface CapabilityProbeOptions {
   allowOnHostProbe?: boolean;

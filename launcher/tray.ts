@@ -1,10 +1,5 @@
 import { Tray, Menu, nativeImage, type BrowserWindow } from "electron";
 
-/**
- * 系统托盘。迁移自 OpenCodex launcher tray。
- * 提供：打开窗口、显示状态、重启网关、退出。创建失败时静默跳过。
- */
-
 export interface TrayController {
   setStatus(label: string): void;
   destroy(): void;

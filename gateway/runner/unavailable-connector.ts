@@ -3,17 +3,11 @@ import type {
   ClaudeDesktopConnector,
   ConnectorDiagnostics,
   DesktopScanResult,
-} from "./claude-desktop-connector.js";
-import { scanClaudeDesktop } from "./claude-desktop-scanner.js";
-import { probeCapabilities, unavailableDiagnostics } from "./claude-desktop-capabilities.js";
-import { diagnosticLog } from "../../gateway/runtime/core/diagnostics.js";
+} from "./types.js";
+import { scanClaudeDesktop } from "./official-layout.js";
+import { probeCapabilities, unavailableDiagnostics } from "./capabilities.js";
+import { diagnosticLog } from "../runtime/core/diagnostics.js";
 
-/**
- * 默认连接器：明确报告 Claude Desktop 连接不可用。
- *
- * 云端环境无法验证真实 Claude Desktop 端到端连接，因此默认实现绝不伪造
- * "已连接/已同步/可用"状态。所有会话操作都会向监听器派发 error 事件。
- */
 export interface UnavailableConnectorOptions {
   scanResult?: DesktopScanResult;
   allowOnHostProbe?: boolean;

@@ -1,11 +1,6 @@
 import type { ConnectorStatus, SessionEvent, SessionSummary } from "../../shared/protocol.js";
-import type { ClaudeDesktopConnector, ConnectorDiagnostics } from "./claude-desktop-connector.js";
-import { diagnosticLog } from "../../gateway/runtime/core/diagnostics.js";
-
-/**
- * Mock 连接器：仅用于本地演示、UI 集成和测试，绝不连接真实 Claude Desktop。
- * 模拟会话列表和流式回复，让前端可以在没有真实连接器时体验完整交互。
- */
+import type { ClaudeDesktopConnector, ConnectorDiagnostics } from "./types.js";
+import { diagnosticLog } from "../runtime/core/diagnostics.js";
 
 export interface MockConnectorOptions {
   status?: ConnectorStatus;

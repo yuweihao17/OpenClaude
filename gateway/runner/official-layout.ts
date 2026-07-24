@@ -2,20 +2,9 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { createRequire } from "node:module";
-import type { DesktopScanResult } from "./claude-desktop-connector.js";
+import type { DesktopScanResult } from "./types.js";
 
-// ESM 下没有全局 require；用 createRequire 才能在运行时按需加载 @electron/asar。
 const nodeRequire = createRequire(import.meta.url);
-
-/**
- * Claude Desktop Windows AppX 安装扫描器。迁移自 OpenCodex CodexAsarScanner。
- *
- * 限制：
- * - 默认只在 win32 上扫描真实安装；其它平台必须通过 fixture 注入。
- * - 绝不读取/输出 Claude 的 Cookie、登录令牌、API Key、聊天内容或会话数据库。
- * - 只读取 app.asar 内 package.json 元数据（name/version/main/依赖声明），不读取业务文件。
- * - 不复制或重新分发 Claude 专有二进制；只在本机做存在性/版本探测。
- */
 
 export interface AsarReader {
   extractFile(asarPath: string, filePath: string): Buffer | string;
@@ -62,17 +51,11 @@ export function defaultWindowsCandidates(env: NodeJS.ProcessEnv, homeDir: string
     path.join(programFiles, "Anthropic", "Claude"),
     path.join(programFiles, "Claude"),
   ];
-  // Windows AppX 安装真实路径：C:\Program Files\WindowsApps\Claude_*。
-  // WindowsApps 目录通常需要管理员权限读取，扫描时尝试列出 Claude_* 子目录；失败则跳过。
   const windowsApps = env.OPENCLAUDE_WINDOWS_APPS_DIR || path.join(programFiles, "WindowsApps");
   for (const sub of expandClaudeAppxDirs(fs, windowsApps)) candidates.push(sub);
   return candidates;
 }
 
-/**
- * 在 WindowsApps 目录下列出所有 `Claude_*` 子目录。返回真实存在的目录路径。
- * 用作 defaultWindowsCandidates 的一部分，也可被测试单独调用（注入 fileSystem）。
- */
 export function expandClaudeAppxDirs(fileSystem: typeof fs, windowsAppsDir: string): string[] {
   const result: string[] = [];
   let entries: string[] = [];
@@ -81,7 +64,6 @@ export function expandClaudeAppxDirs(fileSystem: typeof fs, windowsAppsDir: stri
       .filter((e) => e.isDirectory())
       .map((e) => e.name);
   } catch {
-    // 权限不足或目录不存在；静默跳过（本机扫描时会记录 notes）。
     return result;
   }
   for (const name of entries) {

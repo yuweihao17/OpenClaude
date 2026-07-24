@@ -1,13 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 
-/**
- * 有界日志写入器。迁移自 OpenCodex log rotation。
- *
- * - 单文件日志，超过 maxBytes 时滚动（保留 .old 一份）。
- * - 写入失败静默跳过，不影响网关运行。
- */
-
 export interface BoundedLogWriterOptions {
   maxBytes?: number;
 }
@@ -35,7 +28,6 @@ export function createBoundedLogWriter(options: BoundedLogWriterOptions = {}): B
     queue.length = 0;
     try {
       fs.mkdirSync(path.dirname(filePath), { recursive: true });
-      // 检查大小，滚动。
       try {
         const stat = fs.statSync(filePath);
         if (stat.size > maxBytes) {
@@ -46,7 +38,7 @@ export function createBoundedLogWriter(options: BoundedLogWriterOptions = {}): B
       } catch { /* file may not exist yet */ }
       fs.appendFileSync(filePath, text, "utf-8");
     } catch {
-      // 写入失败静默跳过。
+      // silent on write failure
     } finally {
       writing = false;
     }
@@ -58,7 +50,7 @@ export function createBoundedLogWriter(options: BoundedLogWriterOptions = {}): B
       flush(filePath);
     },
     close(): void {
-      // 队列已同步 flush，无需额外操作。
+      // queue is synchronously flushed, nothing extra needed
     },
   };
 }
